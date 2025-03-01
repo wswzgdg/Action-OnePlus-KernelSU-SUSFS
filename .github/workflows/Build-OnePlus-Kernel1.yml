@@ -25,7 +25,7 @@ on:
       KERNEL_NAME:
         description: "自定义内核名称"
         required: true
-        default: '-android13-8-o-g8e590a27cb79-我是我自己的狗'
+        default: '-ios-8-我是我自己的狗'
       KERNEL_VER:
         description: "自定义版本"
         required: true
