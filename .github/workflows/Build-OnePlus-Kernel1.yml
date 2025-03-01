@@ -25,7 +25,7 @@ on:
       KERNEL_NAME:
         description: "自定义内核名称"
         required: true
-        default: '-ios-8-我是我自己的狗'
+        default: '-android13-8-o-g8e590a27cb79-我是我自己的狗'
       KERNEL_VER:
         description: "自定义版本"
         required: true
@@ -108,6 +108,7 @@ jobs:
             echo "BRANCH=-s next" >> $GITHUB_ENV
          elif [[ "${{ github.event.inputs.kernelsu_variant }}" == "MKSU-SKN" ]]; then
             echo "BRANCH=-s susfs" >> $GITHUB_ENV
+          fi
          fi
 
       - name: Add KernelSU
@@ -141,7 +142,7 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/susfs/kernel/setup.sh" | bash ${{ env.BRANCH }}
           
       - name: Apply SUSFS Patches KernelSU
-        if: ${{ (github.event.inputs.kernelsu_variant == 'Official') && github.event.inputs.SUSFS_ENABLED == 'true' }}
+        if: ${{ (github.event.inputs.kernelsu_variant == 'KSU') && github.event.inputs.SUSFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
@@ -193,7 +194,7 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
 
       - name: Apply SUSFS Patches Rissu KernelSU
-        if: ${{ (inputs.kernelsu_variant == 'RKSU') && github.event.inputs.SUSFS_ENABLED == 'true' }}
+        if: ${{ (github.event.inputs.kernelsu_variant == 'RKSU') && github.event.inputs.SUSFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace
           git clone -b susfs-v1.5.5 https://github.com/rsuntk/KernelSU.git
@@ -209,7 +210,7 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
 
       - name: Apply SUSFS Patches MKSU-SKN
-        if: ${{ (inputs.kernelsu_variant == 'MKSU-SKN') && github.event.inputs.SUSFS_ENABLED == 'true' }}
+        if: ${{ (github.event.inputs.kernelsu_variant == 'MKSU-SKN') && github.event.inputs.SUSFS_ENABLED == 'true' }}
         run: |
           cd kernel_workspace
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
@@ -229,13 +230,17 @@ jobs:
           chmod 777 fix_nongki.sh
           ./fix_nongki.sh
 
-      - name: Apply Hide Stuff Patches
+      - name: Apply New Hook Patches
+        if: ${{ github.event.inputs.kernelsu_variant == 'KSUN' }}
         run: |
           cd kernel_workspace/kernel_platform/common
-          if [[ "${{ github.event.inputs.inputs.SUSFS_ENABLED }}" == "true" ]]; then
           cp ../../kernel_patches/new_hooks.patch ./
           patch -p1 -F 3 < new_hooks.patch
-          fi
+
+      - name: Apply Hide Stuff Patches
+        if: ${{ github.event.inputs.SUSFS_ENABLED == 'true' }}
+        run: |
+          cd kernel_workspace/kernel_platform/common
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < 69_hide_stuff.patch
 
